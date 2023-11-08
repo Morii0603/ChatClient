@@ -26,10 +26,9 @@ import java.net.Socket;
 public class MainActivity extends AppCompatActivity {
     private TextView showmsg;
     private EditText sendmsged;
-    private EditText ipv4ed;
-    private EditText ported;
+
     private Button sendmsgbt;
-    private Button connectbt;
+
     private Handler handler;
     private DataInputStream in;
     private DataOutputStream out;
@@ -46,7 +45,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         applypermission();//权限申请
         InitView();
-
+        connectionSeverThread.start();
+        SendMsgThread.start();
         handler = new Handler(Looper.getMainLooper()){
             @Override
             public void handleMessage(@NonNull Message msg) {
@@ -55,18 +55,13 @@ public class MainActivity extends AppCompatActivity {
                     showmsg.append("客户端:"+sendmsged.getText().toString()+"\n");
                     sendmsged.setText("");
                 }else if(msg.what==98){
+//                    showmsg.append("您有一条新消息");
+//                    String strdata = (String)msg.obj;
+//                    showmsg.append(strdata);
                     showmsg.append(receiveTxt);
                 }
             }
         };
-
-        connectbt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                connectionSeverThread.start();
-                SendMsgThread.start();
-            }
-        });
 
         sendmsgbt.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -81,10 +76,9 @@ public class MainActivity extends AppCompatActivity {
     private void InitView() {
         showmsg = (TextView) findViewById(R.id.showmsg);
         sendmsged = (EditText) findViewById(R.id.sendmsged);
-        ipv4ed = (EditText) findViewById(R.id.ipv4ed);
-        ported = (EditText) findViewById(R.id.ported);
+
         sendmsgbt = (Button) findViewById(R.id.sendmsgbt);
-        connectbt = (Button) findViewById(R.id.connectbt);
+
         //showmsg.setMovementMethod(ScrollingMovementMethod.getInstance());//textview滚动 但控件会随键盘浮动
 //        用此功能xml的textview控件添加如下两段
 //        android:scrollbars="vertical"
@@ -99,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     try {
                         //获取编辑框组件
-                        socket = new Socket(ipv4ed.getText().toString(), Integer.valueOf(ported.getText().toString()));
+                        socket = new Socket("192.168.1.108", 8000);
                         //连接服务器
                         out= new DataOutputStream(socket.getOutputStream());
                         // 创建DataOutputStream对象 发送数据
@@ -111,6 +105,10 @@ public class MainActivity extends AppCompatActivity {
                     while(true) {
                         try {
                             receiveTxt = in.readUTF()+"\n";
+//                            Message message = new Message();
+//                            message.what = 98;
+//                            message.obj = receiveTxt;
+//                            handler.sendMessage(message);
                             handler.sendEmptyMessage(98);
                             //发送空消息  1主要为了区分消息好执行改变组件信息的内容
                         } catch (Exception e) {
