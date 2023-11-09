@@ -18,19 +18,22 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 
 public class MainActivity extends AppCompatActivity {
+    private int BUFFER_SIZE = 1024;
+
     private TextView showmsg;
     private EditText sendmsged;
-
     private Button sendmsgbt;
 
     private Handler handler;
-    private DataInputStream in;
+    private BufferedReader in;
     private DataOutputStream out;
     private Socket socket;
     private String receiveTxt,SendMsg="";//接收文本 发送文本
@@ -52,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
             public void handleMessage(@NonNull Message msg) {
                 super.handleMessage(msg);
                 if(msg.what==24){
-                    showmsg.append("客户端:"+sendmsged.getText().toString()+"\n");
+                    showmsg.append("我："+sendmsged.getText().toString()+"\n");
                     sendmsged.setText("");
                 }else if(msg.what==98){
 //                    showmsg.append("您有一条新消息");
@@ -70,13 +73,10 @@ public class MainActivity extends AppCompatActivity {
                 SendMsg = sendmsged.getText().toString();
             }
         });
-
     }
-
     private void InitView() {
         showmsg = (TextView) findViewById(R.id.showmsg);
         sendmsged = (EditText) findViewById(R.id.sendmsged);
-
         sendmsgbt = (Button) findViewById(R.id.sendmsgbt);
 
         //showmsg.setMovementMethod(ScrollingMovementMethod.getInstance());//textview滚动 但控件会随键盘浮动
@@ -93,30 +93,28 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     try {
                         //获取编辑框组件
-                        socket = new Socket("192.168.1.108", 8000);
+                        socket = new Socket("192.168.1.104", 8000);
                         //连接服务器
                         out= new DataOutputStream(socket.getOutputStream());
                         // 创建DataOutputStream对象 发送数据
-                        in = new DataInputStream(socket.getInputStream());
+                        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     } catch (Exception e) {
                         // TODO Auto-generatetd catch block
                         e.printStackTrace();
                     }
-                    while(true) {
-                        try {
-                            receiveTxt = in.readUTF()+"\n";
-//                            Message message = new Message();
-//                            message.what = 98;
-//                            message.obj = receiveTxt;
-//                            handler.sendMessage(message);
-                            handler.sendEmptyMessage(98);
-                            //发送空消息  1主要为了区分消息好执行改变组件信息的内容
-                        } catch (Exception e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                    try {
+                        while (true) {
+                            char[] buffer = new char[BUFFER_SIZE];
+                            int bytesRead;
+                            while ((bytesRead = in.read(buffer)) != -1) {
+                                receiveTxt = new String(buffer, 0, bytesRead);
+                                System.out.println(receiveTxt);
+                                handler.sendEmptyMessage(98);
+                            }
                         }
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-
                 }
             }
     );
@@ -128,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
                     while (true){
                         if(SendMsg != ""){
                             try {
-                                out.writeUTF("客户端:"+SendMsg);//发送消息
+                                out.writeUTF(SendMsg);//发送消息
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
