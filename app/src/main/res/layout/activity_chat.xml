@@ -5,16 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    tools:context=".MainActivity">
+    tools:context=".ChatActivity">
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/sendmsged"
+        android:layout_above="@+id/sendMsgEditText"
         android:layout_alignParentTop="true">
 
         <TextView
-            android:id="@+id/showmsg"
+            android:id="@+id/showMsgTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text=""
@@ -22,7 +22,7 @@
     </ScrollView>
 
     <EditText
-        android:id="@+id/sendmsged"
+        android:id="@+id/sendMsgEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -32,10 +32,10 @@
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="16dp"
-        android:layout_toStartOf="@+id/sendmsgbt" />
+        android:layout_toStartOf="@+id/sendMsgButton" />
 
     <Button
-        android:id="@+id/sendmsgbt"
+        android:id="@+id/sendMsgButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"

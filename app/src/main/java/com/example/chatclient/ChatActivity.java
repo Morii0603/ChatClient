@@ -1,6 +1,8 @@
 package com.example.chatclient;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,22 +18,26 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
-public class MainActivity extends AppCompatActivity {
+public class ChatActivity extends AppCompatActivity {
     private final int BUFFER_SIZE = 1024;
-    private TextView showmsg;
-    private EditText sendmsged;
-    private Button sendmsgbt;
-
+    private String ipAddress;
+    private String port;
+    private TextView showMsgTextView;
+    private EditText sendMsgEditText;
+    private Button sendMsgButton;
     private Handler handler;
     private BufferedReader in;
     private DataOutputStream out;
     private Socket socket;
-    private String receiveTxt,SendMsg="";//接收文本 发送文本
+    private String receiveTxt, sendMsg ="";//接收文本 发送文本
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_chat);
         InitView();
+        Intent intent = getIntent();
+        ipAddress = intent.getStringExtra("ipAddress");
+        port = intent.getStringExtra("port");
         connectionSeverThread.start();
         SendMsgThread.start();
         handler = new Handler(Looper.getMainLooper()){
@@ -39,26 +45,26 @@ public class MainActivity extends AppCompatActivity {
             public void handleMessage(@NonNull Message msg) {
                 super.handleMessage(msg);
                 if(msg.what==24){
-                    showmsg.append("我："+sendmsged.getText().toString()+"\n");
-                    sendmsged.setText("");
+                    showMsgTextView.append("我："+ sendMsgEditText.getText().toString()+"\n");
+                    sendMsgEditText.setText("");
                 }else if(msg.what==98){
-                    showmsg.append(receiveTxt);
+                    showMsgTextView.append(receiveTxt);
                 }
             }
         };
 
-        sendmsgbt.setOnClickListener(new View.OnClickListener() {
+        sendMsgButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 handler.sendEmptyMessage(24);
-                SendMsg = sendmsged.getText().toString();
+                sendMsg = sendMsgEditText.getText().toString();
             }
         });
     }
     private void InitView() {
-        showmsg = findViewById(R.id.showmsg);
-        sendmsged = findViewById(R.id.sendmsged);
-        sendmsgbt = findViewById(R.id.sendmsgbt);
+        showMsgTextView = findViewById(R.id.showMsgTextView);
+        sendMsgEditText = findViewById(R.id.sendMsgEditText);
+        sendMsgButton = findViewById(R.id.sendMsgButton);
     }
 
     Thread connectionSeverThread = new Thread(
@@ -68,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     try {
                         //新建socket对象
-                        socket = new Socket("192.168.1.104", 8000);
+                        socket = new Socket(ipAddress, Integer.parseInt(port));
                         //连接服务器
                         out= new DataOutputStream(socket.getOutputStream());
                         // 创建DataOutputStream对象 发送数据
@@ -98,14 +104,14 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     while (true){
-                        if(SendMsg != "" && out!=null){
+                        if(sendMsg != "" && out!=null){
                             try {
-                                    out.writeUTF(SendMsg);//发送消息
+                                    out.writeUTF(sendMsg);//发送消息
 
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                            SendMsg = "";
+                            sendMsg = "";
                         }
                         try {
                             Thread.sleep(200);
